@@ -2,18 +2,16 @@
 const { ApolloServer } = require("apollo-server");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const conn = require('./db.js'); // database connection
 
 // file
 const typeDefs = require("./graphql/typedefs.js");
-const resolvers = require("./graphql/resolvers.js");
+const resolvers = require("./graphql/resolvers/index.js");
 
 // conf
 dotenv.config();
 
-mongoose.connect(process.env.DB_URL, {
-    useNewUrlParser: true
-}).then(() => console.log('MongoDB Connected!'));
-
+conn()
 
 const server = new ApolloServer({
     typeDefs,
