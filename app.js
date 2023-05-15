@@ -5,13 +5,13 @@ const dotenv = require("dotenv");
 const conn = require('./db.js'); // database connection
 
 // file
-const typeDefs = require("./graphql/typedefs.js");
+const typeDefs = require("./graphql/typeDefs.js");
 const resolvers = require("./graphql/resolvers/index.js");
 
 // conf
 dotenv.config();
 
-conn()
+conn();
 
 const server = new ApolloServer({
     typeDefs,
