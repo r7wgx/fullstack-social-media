@@ -1,13 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { UserInputError } = require('apollo-server');
+const {ApolloError} = require("apollo-server-errors")
 
-const {
-  validateRegisterInput,
-  validateLoginInput
-} = require('../../util/validators');
-const { SECRET_KEY } = require('../../.env');
-const User = require('../../models/User');
+const User = require('../../model/User.js');
+
 
 function generateToken(user) {
   return jwt.sign(
@@ -16,7 +12,7 @@ function generateToken(user) {
       email: user.email,
       username: user.username
     },
-    SECRET_KEY,
+    process.env.SECRET_KEY,
     { expiresIn: '1h' }
   );
 }
@@ -24,23 +20,18 @@ function generateToken(user) {
 module.exports = {
   Mutation: {
     async login(_, { username, password }) {
-      const { errors, valid } = validateLoginInput(username, password);
-
-      if (!valid) {
-        throw new UserInputError('Errors', { errors });
-      }
 
       const user = await User.findOne({ username });
 
       if (!user) {
         errors.general = 'User not found';
-        throw new UserInputError('User not found', { errors });
+        throw new ApolloError('User not found', { errors });
       }
 
       const match = await bcrypt.compare(password, user.password);
       if (!match) {
         errors.general = 'Wrong crendetials';
-        throw new UserInputError('Wrong crendetials', { errors });
+        throw new ApolloError('Wrong crendetials', { errors });
       }
 
       const token = generateToken(user);
@@ -57,22 +48,30 @@ module.exports = {
         registerInput: { username, email, password, confirmPassword }
       }
     ) {
-      // Validate user data
-      const { valid, errors } = validateRegisterInput(
-        username,
-        email,
-        password,
-        confirmPassword
-      );
-      if (!valid) {
-        throw new UserInputError('Errors', { errors });
-      }
-      // TODO: Make sure user doesnt already exist
+      const oldUser = await User.findOne({ email });
+            
+      if(oldUser) {
+          throw new ApolloError("Bu kullanıcı email'i zaten daha önce kullanılmış " + email, "USER_ALREADY_EXIESTS", {
+            errors: {
+              username: 'This username is taken'
+            }
+          })
+      }   
+
       const user = await User.findOne({ username });
+
       if (user) {
-        throw new UserInputError('Username is taken', {
+        throw new ApolloError('Username is taken', {
           errors: {
             username: 'This username is taken'
+          }
+        });
+      }
+
+      if (password !== confirmPassword) {
+        throw new ApolloError('Parola eşleşmiyor lütfen parolanızı doğru girdiğinizden emin olun!', {
+          errors: {
+            username: 'Password false'
           }
         });
       }
