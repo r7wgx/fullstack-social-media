@@ -30,20 +30,16 @@ module.exports = {
       const user = checkAuth(context);
       console.log(user);
 
-      try {
         const newPost = new Post({
           body,
           user: user.id,
           username: user.username,
-          createdAt: new Date().toISOString();
+          createdAt: new Date().toISOString()
         });
 
         const post = await newPost.save();
 
         return post;
-      } catch (error) {
-        throw new Error(error) 
-      }
     },
     async deletePost(_, {postID}, context) {
       const user = checkAuth(context);

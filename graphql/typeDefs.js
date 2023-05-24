@@ -2,10 +2,10 @@ const { gql } = require('apollo-server');
 
 module.exports = gql`
   type Post {
-    id: ID!
     body: String!
-    createdAt: String!
+    id: ID!
     username: String!
+    createdAt: String!
   }
   type User {
     id: ID!
